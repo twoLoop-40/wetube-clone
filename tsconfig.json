@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"allowJs": true,
+		"target": "es6",
+		"outDir": "./dist",
+		"moduleResolution": "node",
+		"lib": ["DOM","ESNext", "DOM.Iterable"],
+		"esModuleInterop": true,
+		"noImplicitAny": true,
+	},
+	"include": [
+		"src/**/*"
+	],
+}
+
