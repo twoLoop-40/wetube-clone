@@ -3,25 +3,32 @@ const PORT = 4000;
 const app = express();
 const makeLogger = (logger) => {
     return (req, res, next) => {
-        logger(req, res);
-        next();
+        req && res
+            ? logger(req, res)
+            : req
+                ? logger(req)
+                : res
+                    ? logger(req, res)
+                    : logger();
+        if (next)
+            next();
     };
 };
-const URLLogger = makeLogger((req) => {
+const URLLogger = makeLogger(req => {
     console.log(`PATH: ${req === null || req === void 0 ? void 0 : req.path}`);
 });
 const timeLogger = makeLogger(() => {
     console.log(`TIME: ${new Date().toISOString()}`);
 });
-const securityLogger = makeLogger((req) => {
+const securityLogger = makeLogger(req => {
     (req === null || req === void 0 ? void 0 : req.secure) ? console.log('SECURE') : console.log('INSECURE');
 });
 const privateMiddleWare = makeLogger((req, res) => {
-    if (req.path === '/protected') {
-        res.send('You are not allowed');
+    if ((req === null || req === void 0 ? void 0 : req.path) === '/protected') {
+        res === null || res === void 0 ? void 0 : res.send('You are not allowed');
     }
     else {
-        console.log('You are allowed');
+        console.log('Allowed, you may pass');
     }
 });
 const handleHome = (req, res) => {
