@@ -1,19 +1,7 @@
 import express from 'express';
+import { makeLogger } from './util';
 const PORT = 4000;
 const app = express();
-const makeLogger = (logger) => {
-    return (req, res, next) => {
-        req && res
-            ? logger(req, res)
-            : req
-                ? logger(req)
-                : res
-                    ? logger(req, res)
-                    : logger();
-        if (next)
-            next();
-    };
-};
 const URLLogger = makeLogger(req => {
     console.log(`PATH: ${req === null || req === void 0 ? void 0 : req.path}`);
 });
@@ -22,6 +10,7 @@ const timeLogger = makeLogger(() => {
 });
 const securityLogger = makeLogger(req => {
     const protocol = req === null || req === void 0 ? void 0 : req.protocol;
+    console.dir(req === null || req === void 0 ? void 0 : req.protocol);
     protocol && protocol === 'https'
         ? console.log('SECURE')
         : console.log('INSECURE');
