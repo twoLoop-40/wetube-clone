@@ -1,37 +1,50 @@
 import express from 'express';
-import path from 'path';
 
 const PORT = 4000;
 const app = express();
-const handleHome = (req: express.Request, res: express.Response) => {
-  const filename = path.join(__dirname, 'htmlFiles/home.html');
-  res.sendFile(filename, () => {
-    console.log('home.html sent');
-  });
-};
-const handleAbout = (req: express.Request, res: express.Response) => {
-  const filename = path.join(__dirname, 'htmlFiles/about.html');
-  res.sendFile(filename, () => {
-    console.log('about.html sent');
-  });
-};
-const handleLogin = (req: express.Request, res: express.Response) => {
-  const filename = path.join(__dirname, 'htmlFiles/login.html');
-  res.sendFile(filename, () => {
-    console.log('login.html sent');
-  });
-};
-const handleContact = (req: express.Request, res: express.Response) => {
-  const filename = path.join(__dirname, 'htmlFiles/contact.html');
-  res.sendFile(filename, () => {
-    console.log('contact.html sent');
-  });
+
+type Logger = (req?: express.Request, res?: express.Response) => void;
+const makeLogger = (logger: Logger) => {
+  return (
+    req?: express.Request,
+    res?: express.Response,
+    next?: express.NextFunction
+  ) => {
+    req && res
+      ? logger(req, res)
+      : req
+      ? logger(req)
+      : res
+      ? logger(req, res)
+      : logger();
+    if (next) next();
+  };
 };
 
-app.get('/about', handleAbout);
-app.get('/contact', handleContact);
-app.get('/login', handleLogin);
+const URLLogger = makeLogger(req => {
+  console.log(`PATH: ${req?.path}`);
+});
+const timeLogger = makeLogger(() => {
+  console.log(`TIME: ${new Date().toISOString()}`);
+});
+const securityLogger = makeLogger(req => {
+  req?.secure ? console.log('SECURE') : console.log('INSECURE');
+});
+
+const privateMiddleWare = makeLogger((req, res) => {
+  if (req?.path === '/protected') {
+    res?.send('You are not allowed');
+  } else {
+    console.log('Allowed, you may pass');
+  }
+});
+
+const handleHome = (req: express.Request, res: express.Response) => {
+  return res.send('<h1>You are home</h1>');
+};
+
+app.use(URLLogger, timeLogger, securityLogger, privateMiddleWare);
 app.get('/', handleHome);
 
-const logger = () => console.log(`Server is listening on port ${PORT}`);
-app.listen(PORT, logger);
+const listner = () => console.log(`Server is listening on port ${PORT}`);
+app.listen(PORT, listner);

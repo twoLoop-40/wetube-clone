@@ -1,34 +1,33 @@
 import express from 'express';
-import path from 'path';
 const PORT = 4000;
 const app = express();
+const makeLogger = (logger) => {
+    return (req, res, next) => {
+        logger(req, res);
+        next();
+    };
+};
+const URLLogger = makeLogger((req) => {
+    console.log(`PATH: ${req === null || req === void 0 ? void 0 : req.path}`);
+});
+const timeLogger = makeLogger(() => {
+    console.log(`TIME: ${new Date().toISOString()}`);
+});
+const securityLogger = makeLogger((req) => {
+    (req === null || req === void 0 ? void 0 : req.secure) ? console.log('SECURE') : console.log('INSECURE');
+});
+const privateMiddleWare = makeLogger((req, res) => {
+    if (req.path === '/protected') {
+        res.send('You are not allowed');
+    }
+    else {
+        console.log('You are allowed');
+    }
+});
 const handleHome = (req, res) => {
-    const filename = path.join(__dirname, 'htmlFiles/home.html');
-    res.sendFile(filename, () => {
-        console.log('home.html sent');
-    });
+    return res.send('<h1>You are home</h1>');
 };
-const handleAbout = (req, res) => {
-    const filename = path.join(__dirname, 'htmlFiles/about.html');
-    res.sendFile(filename, () => {
-        console.log('about.html sent');
-    });
-};
-const handleLogin = (req, res) => {
-    const filename = path.join(__dirname, 'htmlFiles/login.html');
-    res.sendFile(filename, () => {
-        console.log('login.html sent');
-    });
-};
-const handleContact = (req, res) => {
-    const filename = path.join(__dirname, 'htmlFiles/contact.html');
-    res.sendFile(filename, () => {
-        console.log('contact.html sent');
-    });
-};
-app.get('/about', handleAbout);
-app.get('/contact', handleContact);
-app.get('/login', handleLogin);
+app.use(URLLogger, timeLogger, securityLogger, privateMiddleWare);
 app.get('/', handleHome);
-const logger = () => console.log(`Server is listening on port ${PORT}`);
-app.listen(PORT, logger);
+const listner = () => console.log(`Server is listening on port ${PORT}`);
+app.listen(PORT, listner);
