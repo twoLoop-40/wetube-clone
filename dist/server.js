@@ -21,8 +21,10 @@ const timeLogger = makeLogger(() => {
     console.log(`TIME: ${new Date().toISOString()}`);
 });
 const securityLogger = makeLogger(req => {
-    console.log(req === null || req === void 0 ? void 0 : req.protocol);
-    (req === null || req === void 0 ? void 0 : req.secure) ? console.log('SECURE') : console.log('INSECURE');
+    const protocol = req === null || req === void 0 ? void 0 : req.protocol;
+    protocol && protocol === 'https'
+        ? console.log('SECURE')
+        : console.log('INSECURE');
 });
 const privateMiddleWare = makeLogger((req, res) => {
     if ((req === null || req === void 0 ? void 0 : req.path) === '/protected') {
