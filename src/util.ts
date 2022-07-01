@@ -1,18 +1,18 @@
 import express from 'express';
-export type Logger = (req?: express.Request, res?: express.Response) => void;
-export const makeLogger = (logger: Logger) => {
+export type Handler = (req?: express.Request, res?: express.Response) => void;
+export const makeHandler = (handler: Handler) => {
   return (
     req?: express.Request,
     res?: express.Response,
     next?: express.NextFunction
   ) => {
     req && res
-      ? logger(req, res)
+      ? handler(req, res)
       : req
-      ? logger(req)
+      ? handler(req)
       : res
-      ? logger(req, res)
-      : logger();
+      ? handler(req, res)
+      : handler();
     if (next) next();
   };
 };

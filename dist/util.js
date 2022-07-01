@@ -1,12 +1,12 @@
-export const makeLogger = (logger) => {
+export const makeHandler = (handler) => {
     return (req, res, next) => {
         req && res
-            ? logger(req, res)
+            ? handler(req, res)
             : req
-                ? logger(req)
+                ? handler(req)
                 : res
-                    ? logger(req, res)
-                    : logger();
+                    ? handler(req, res)
+                    : handler();
         if (next)
             next();
     };
