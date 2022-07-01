@@ -6,8 +6,9 @@ const handleWatchVideo = makeHandler((req, res) => {
 });
 const handleStoryId = makeHandler((req, res) => {
     const { id } = req ? req.params : { id: '0' };
-    console.log(isNaN(parseInt(id)));
-    return res === null || res === void 0 ? void 0 : res.send(`Show Story ${id}`);
+    return isNaN(parseInt(id)) || id === '0'
+        ? res === null || res === void 0 ? void 0 : res.send('Invalid Story Id')
+        : res === null || res === void 0 ? void 0 : res.send(`Story ${id}`);
 });
 const handleEditStory = makeHandler((req, res) => {
     const { id } = req ? req.params : { id: '0' };
