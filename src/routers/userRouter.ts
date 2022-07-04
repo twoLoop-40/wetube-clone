@@ -1,12 +1,8 @@
 import express from 'express';
-import {
-  handleEditProfile,
-  handleUser,
-  handleUserId,
-} from '../controllers/userController';
+import { editProfile, seeUser, seeUsers } from '../controllers/userController';
 
 export const userRouter = express.Router();
 
-userRouter.get('/', handleUser);
-userRouter.get('/edit-profile', handleEditProfile);
-userRouter.get('/:id', handleUserId);
+userRouter.get('/', seeUsers);
+userRouter.get('/edit-profile', editProfile);
+userRouter.get('/:id', seeUser);

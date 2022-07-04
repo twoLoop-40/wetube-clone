@@ -4,7 +4,7 @@ import {
   handleEditStory,
   handleStoryId,
   handleWatchVideo,
-} from '../controllers/videoController';
+} from '../controllers/storiesController';
 
 export const storyRouter = express.Router();
 

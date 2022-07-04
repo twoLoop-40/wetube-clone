@@ -1,5 +1,15 @@
 import { makeHandler } from '../util';
 
+export const home = makeHandler((req, res) => {
+  return res?.send('Home');
+});
+export const trending = makeHandler((req, res) => {
+  return res?.send('Trending');
+});
+export const newStories = makeHandler((req, res) => {
+  return res?.send('New');
+});
+
 export const handleWatchVideo = makeHandler((req, res) => {
   return res?.send('Watch Video');
 });
