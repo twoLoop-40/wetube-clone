@@ -1,21 +1,52 @@
 import { makeHandler } from '../util';
+const videos = [
+    {
+        title: 'First Video',
+        rating: 5,
+        comments: 2,
+        createdAt: '2 minutes ago',
+        views: 1,
+        id: 1,
+    },
+    {
+        title: 'Second Video',
+        rating: 5,
+        comments: 2,
+        createdAt: '2 minutes ago',
+        views: 59,
+        id: 2,
+    },
+    {
+        title: 'Third Video',
+        rating: 5,
+        comments: 2,
+        createdAt: '2 minutes ago',
+        views: 59,
+        id: 3,
+    },
+];
 export const trending = makeHandler((req, res) => {
-    return res === null || res === void 0 ? void 0 : res.render('home', { pageTitle: 'Trending' });
+    return res === null || res === void 0 ? void 0 : res.render('home', { pageTitle: 'Home', videos });
 });
 export const newStories = makeHandler((req, res) => {
     return res === null || res === void 0 ? void 0 : res.send('New');
 });
-export const seeStory = makeHandler((req, res) => {
-    const { id } = req ? req.params : { id: '0' };
-    return isNaN(parseInt(id)) || id === '0'
-        ? res === null || res === void 0 ? void 0 : res.send('Invalid Story Id')
-        : res === null || res === void 0 ? void 0 : res.render('watch', { pageTitle: 'Watch' });
+export const watch = makeHandler((req, res) => {
+    const dec = (n) => n - 1;
+    const { id } = req ? req.params : { id: 0 };
+    const video = videos[dec(Number(id))];
+    return res === null || res === void 0 ? void 0 : res.render('watch', { pageTitle: `Watching ${video.title}`, video });
 });
-export const editStory = makeHandler((req, res) => {
-    const { id } = req ? req.params : { id: '0' };
-    return res === null || res === void 0 ? void 0 : res.render('edit', { pageTitle: `Edit ${id}` });
+export const getEdit = makeHandler((req, res) => {
+    const { id } = req ? req.params : { id: 0 };
+    const dec = (n) => n - 1;
+    const video = videos[dec(Number(id))];
+    return res === null || res === void 0 ? void 0 : res.render('edit', { pageTitle: `Editing: ${video.title}`, video });
 });
-export const deleteStory = makeHandler((req, res) => {
-    const { id } = req ? req.params : { id: '0' };
-    return res === null || res === void 0 ? void 0 : res.send(`Delete Story for ${id}`);
+export const postEdit = makeHandler((req, res) => {
+    const { id } = req ? req.params : { id: 0 };
+    const { title } = req ? req.body : { title: '' };
+    const dec = (n) => n - 1;
+    videos[dec(Number(id))].title = title;
+    return res === null || res === void 0 ? void 0 : res.redirect(`/stories/${id}`);
 });

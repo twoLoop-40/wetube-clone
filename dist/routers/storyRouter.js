@@ -1,6 +1,5 @@
 import express from 'express';
-import { deleteStory, editStory, seeStory, } from '../controllers/storiesController';
+import { getEdit, postEdit, watch } from '../controllers/storiesController';
 export const storyRouter = express.Router();
-storyRouter.get('/:id', seeStory);
-storyRouter.get('/:id/edit', editStory);
-storyRouter.get('/:id/delete', deleteStory);
+storyRouter.get('/:id(\\d+)', watch);
+storyRouter.route('/:id(\\d+)/edit').get(getEdit).post(postEdit);
