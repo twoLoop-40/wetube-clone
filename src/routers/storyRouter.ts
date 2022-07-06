@@ -1,14 +1,12 @@
 import express from 'express';
 import {
-  handleDeleteStory,
-  handleEditStory,
-  handleStoryId,
-  handleWatchVideo,
+  deleteStory,
+  editStory,
+  seeStory,
 } from '../controllers/storiesController';
 
 export const storyRouter = express.Router();
 
-storyRouter.get('/watch', handleWatchVideo);
-storyRouter.get('/:id', handleStoryId);
-storyRouter.get('/:id/edit', handleEditStory);
-storyRouter.get('/:id/delete', handleDeleteStory);
+storyRouter.get('/:id', seeStory);
+storyRouter.get('/:id/edit', editStory);
+storyRouter.get('/:id/delete', deleteStory);
