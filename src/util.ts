@@ -16,3 +16,7 @@ export const makeHandler = (handler: Handler) => {
     if (next) next();
   };
 };
+
+export type Controller = {
+  (req: express.Request, res: express.Response): void;
+};

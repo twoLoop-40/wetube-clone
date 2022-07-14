@@ -2,8 +2,9 @@ mixin video(movie)
 	div 
 		h4
 			a(href=`/stories/${movie.id}`)=movie.title
-		ul
-			li #{movie.rating} / 5.
-			li #{movie.comments} comments.
-			li Posted #{movie.createdAt}.
-			li #{movie.views} views.
+		p=movie.description
+		ul 
+			each hashtag in movie.hashtags
+				li=hashtag 
+		small=movie.createdAt
+		hr

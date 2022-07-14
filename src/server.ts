@@ -4,7 +4,6 @@ import { userRouter } from './routers/userRouter';
 import { storyRouter } from './routers/storyRouter';
 import morgan from 'morgan';
 
-const PORT = 4000;
 const app = express();
 const logger = morgan('dev');
 
@@ -17,5 +16,4 @@ app.use('/', globalRouter);
 app.use('/users', userRouter);
 app.use('/stories', storyRouter);
 
-const listner = () => console.log(`Server is listening on port ${PORT}`);
-app.listen(PORT, listner);
+export default app;
