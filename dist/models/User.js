@@ -15,6 +15,7 @@ export const userSchema = new Schema({
     password: { type: String, required: true, trim: true },
     name: { type: String, required: true, trim: true },
     location: { type: String, required: true, trim: true },
+    avatarUrl: String,
 });
 userSchema.pre('save', function () {
     return __awaiter(this, void 0, void 0, function* () {

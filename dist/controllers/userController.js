@@ -42,6 +42,8 @@ export const postLogin = (req, res) => __awaiter(void 0, void 0, void 0, functio
             errorMessage: 'Password is incorrect',
         });
     }
+    req.session.loggedIn = true;
+    req.session.user = user;
     return res === null || res === void 0 ? void 0 : res.redirect('/');
 });
 export const getJoin = (req, res) => {
@@ -84,4 +86,25 @@ export const postJoin = (req, res) => __awaiter(void 0, void 0, void 0, function
         });
         return;
     }
+});
+export const getEdit = (req, res) => {
+    return res === null || res === void 0 ? void 0 : res.render('edit', { pageTitle: 'Edit profile' });
+};
+export const postEdit = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { session: { user }, body: { name, email, location, username }, file, } = req;
+    const _id = user === null || user === void 0 ? void 0 : user._id;
+    const avatarUrl = user === null || user === void 0 ? void 0 : user.avatarUrl;
+    // console.log(_id);
+    // console.log(file);
+    const updatedUser = yield User.findByIdAndUpdate(_id, {
+        avatarURl: file ? file.path : avatarUrl,
+        name,
+        email,
+        location,
+        username,
+    }, { new: true });
+    if (updatedUser) {
+        req.session.user = updatedUser;
+    }
+    return res.redirect('/users/edit');
 });

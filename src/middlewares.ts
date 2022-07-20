@@ -1,9 +1,10 @@
 import multer from 'multer';
 import { Controller } from './util';
 
-export const localMiddleware: Controller = (req, res, next) => {
+export const localsMiddleware: Controller = (req, res, next) => {
   res.locals.loggedIn = Boolean(req.session.loggedIn);
   res.locals.siteName = 'Wetube';
+  console.log(res.locals);
   res.locals.user = req.session.user || {};
   if (next) {
     next();

@@ -101,8 +101,6 @@ export const postEdit: Controller = async (req, res) => {
   } = req;
   const _id = user?._id;
   const avatarUrl = user?.avatarUrl;
-  // console.log(_id);
-  // console.log(file);
   const updatedUser = await User.findByIdAndUpdate(
     _id,
     {

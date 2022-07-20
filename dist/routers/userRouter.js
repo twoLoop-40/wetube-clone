@@ -1,6 +1,11 @@
 import express from 'express';
-import { editProfile, seeUser, seeUsers } from '../controllers/userController';
+import { editProfile, postEdit, seeUser, seeUsers, } from '../controllers/userController';
+import { protectMiddleware, uploadFiles } from '../middlewares';
 export const userRouter = express.Router();
 userRouter.get('/', seeUsers);
-userRouter.get('/edit-profile', editProfile);
+userRouter
+    .route('/edit')
+    .all(protectMiddleware)
+    .get(editProfile)
+    .post(uploadFiles.single('avatar'), postEdit);
 userRouter.get('/:id', seeUser);
