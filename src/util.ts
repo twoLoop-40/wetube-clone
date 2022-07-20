@@ -18,5 +18,9 @@ export const makeHandler = (handler: Handler) => {
 };
 
 export type Controller = {
-  (req: express.Request, res: express.Response): void;
+  (
+    req: express.Request,
+    res: express.Response,
+    next?: express.NextFunction
+  ): void;
 };

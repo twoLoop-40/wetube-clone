@@ -1,7 +1,8 @@
 import express from 'express';
-import { globalRouter } from './routers/globalRouter';
+import { rootRouter } from './routers/rootRouter';
 import { userRouter } from './routers/userRouter';
-import { storyRouter } from './routers/storyRouter';
+import { videoRouter } from './routers/videoRouter';
+import session from 'express-session';
 import morgan from 'morgan';
 
 const app = express();
@@ -12,8 +13,25 @@ app.set('views', process.cwd() + '/src/views');
 
 app.use(logger);
 app.use(express.urlencoded({ extended: true }));
-app.use('/', globalRouter);
+app.use(
+  session({
+    secret: 'secret',
+    resave: true,
+    saveUninitialized: true,
+  })
+);
+
+app.use((req, res, next) => {
+  req.sessionStore.all
+    ? req.sessionStore.all((error, sessions) => {
+        console.log(sessions);
+        next();
+      })
+    : next();
+});
+app.use('/uploads', express.static('uploads'));
+app.use('/', rootRouter);
 app.use('/users', userRouter);
-app.use('/stories', storyRouter);
+app.use('/stories', videoRouter);
 
 export default app;
