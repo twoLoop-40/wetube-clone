@@ -12,10 +12,11 @@ import bcrypt from 'bcrypt';
 export const userSchema = new Schema({
     email: { type: String, required: true, unique: true, trim: true },
     username: { type: String, required: true, unique: true, trim: true },
-    password: { type: String, required: true, trim: true },
+    password: { type: String, trim: true },
     name: { type: String, required: true, trim: true },
     location: { type: String, required: true, trim: true },
     avatarUrl: String,
+    socialOnly: { type: Boolean, default: false },
 });
 userSchema.pre('save', function () {
     return __awaiter(this, void 0, void 0, function* () {

@@ -1,7 +1,9 @@
 import mongoose from 'mongoose';
+import { URLSearchParams } from 'url';
 import User, { UserSchema } from '../models/User';
 import { Controller, makeHandler } from '../util';
 import bcrypt from 'bcrypt';
+import fetch from 'node-fetch';
 
 declare module 'express-session' {
   interface SessionData {
@@ -9,16 +11,180 @@ declare module 'express-session' {
     loggedIn: boolean;
   }
 }
+type ParamData =
+  | string
+  | URLSearchParams
+  | Record<string, string | readonly string[]>
+  | Iterable<[string, string]>
+  | readonly [string, string][];
 
-export const seeUsers = makeHandler((req, res) => {
-  return res?.send('See Users');
-});
+const makeURLFromConfig = (
+  baseUrl: string,
+  configParams: ParamData,
+  handler: (baseUrl: string, paramArgs: ParamData) => string
+) => {
+  return handler(baseUrl, configParams);
+};
+const joinURL = (baseUrl: string, params: ParamData) => {
+  return baseUrl + '?' + new URLSearchParams(params).toString();
+};
+export const startGithublogin: Controller = (req, res) => {
+  const config = {
+    client_id: process.env.GITHUB_CLIENT_ID || '',
+    allow_signup: 'false',
+    scope: 'read:user user:email',
+  };
+
+  const baseUrl = 'https://github.com/login/oauth/authorize';
+  const finalUrl = makeURLFromConfig(baseUrl, config, joinURL);
+  res.redirect(finalUrl);
+  return;
+};
+type AccessFunction<T> = {
+  (
+    arg1: (arg: string) => Promise<T>,
+    arg2: (arg: T) => void,
+    arg3: (arg: void) => void
+  ): (input: string) => void;
+};
+export const finishGithublogin: Controller = async (req, res) => {
+  const fetchData = async (url: string) => {
+    try {
+      const json = await fetch(url, {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+      }).then(response => response.json());
+      if ('access_token' in json) {
+        const { access_token } = json;
+        console.log(access_token);
+        return access_token;
+      } else {
+        throw new Error('No access token');
+      }
+    } catch (error) {
+      console.log(error);
+      return;
+    }
+  };
+  const getUserRequest = async <T>(token: T) => {
+    const apiUrl = 'https://api.github.com';
+    const getUserData = (urlMaker: (args: string[]) => string[]) => {
+      return (...routes: string[]) =>
+        Promise.all(
+          urlMaker(routes).map(url => {
+            console.log(url);
+            return fetch(url, {
+              headers: {
+                Authorization: `token ${token}`,
+              },
+            }).then(response => response.json());
+          })
+        );
+    };
+    const userDataFromRoutes = getUserData(routes =>
+      routes.map(route => apiUrl + route)
+    );
+
+    const data = await userDataFromRoutes('/user', '/user/emails');
+
+    interface Email {
+      primary: boolean;
+      verified: boolean;
+      email: string;
+    }
+    const findEmails = <T>(...verifiers: ((arg: T) => boolean)[]) => {
+      return (emails: T[]) => {
+        const verifiedEmails = emails.find(email =>
+          verifiers.every(verifier => verifier(email))
+        );
+        return verifiedEmails;
+      };
+    };
+    const emailObj = findEmails<Email>(
+      email => email.primary === true,
+      email => email.verified === true
+    )(data[1]);
+
+    type UserVerification = { (email: string): Promise<boolean> };
+    type handleExistingUser = { (email: string): void };
+    type handleNewUser = { (user: typeof data[0], email: string): void };
+    const logInByEmail = (
+      checkUser: UserVerification,
+      userLoginByEmail: handleExistingUser,
+      makeUser: handleNewUser
+    ) => {
+      return async (emailObj: Email, user: typeof data[0]) => {
+        const { email } = emailObj;
+        if (await checkUser(email)) {
+          userLoginByEmail(email);
+        } else {
+          makeUser(user, email);
+        }
+      };
+    };
+    if (emailObj) {
+      type LogInProcess = { (user: UserSchema | null): void };
+      const logInProcess: LogInProcess = user => {
+        req.session.user = user || undefined;
+        req.session.loggedIn = true;
+        res.redirect('/');
+      };
+      await logInByEmail(
+        async email => {
+          const existingUser = await User.findOne({ email });
+          return existingUser !== null;
+        },
+        async email => {
+          const existingUser = await User.findOne({ email });
+          logInProcess(existingUser);
+          return;
+        },
+        async (user, email) => {
+          const newUser = await User.create({
+            avatarUrl: user.avatar_url,
+            name: user.name,
+            username: user.login,
+            email,
+            password: '',
+            socialOnly: true,
+            location: user.location,
+          });
+          logInProcess(newUser);
+          return;
+        }
+      )(emailObj, data[0]);
+    } else {
+      res.redirect('/login');
+      return;
+    }
+  };
+  const baseUrl = 'https://github.com/login/oauth/access_token';
+  const config = {
+    client_id: process.env.GITHUB_CLIENT_ID || '',
+    client_secret: process.env.GITHUB_CLIENT_SECRET || '',
+    code: req.query.code?.toString() || '',
+  };
+  const finalUrl = makeURLFromConfig(baseUrl, config, joinURL);
+  const getAccess: AccessFunction<string> = (
+    getToken,
+    successCallback,
+    errorCallback
+  ) => {
+    return async (url: string) => {
+      const token = await getToken(url);
+
+      return token ? successCallback(token) : errorCallback();
+    };
+  };
+  const access = getAccess(fetchData, getUserRequest, () => {
+    res.redirect('/login');
+    return;
+  });
+  access(finalUrl);
+};
+
 export const editProfile = makeHandler((req, res) => {
   return res?.send('Edit Profile');
-});
-export const seeUser = makeHandler((req, res) => {
-  const { id } = req ? req.params : { id: '0' };
-  return res?.send(`See user id: ${id}`);
 });
 
 export const getLogin = makeHandler((req, res) => {
@@ -116,4 +282,11 @@ export const postEdit: Controller = async (req, res) => {
     req.session.user = updatedUser;
   }
   return res.redirect('/users/edit');
+};
+
+export const logout: Controller = (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/');
+  });
+  return;
 };
